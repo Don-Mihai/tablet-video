@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import styles from './Main.module.css';
 import Preview from '../Preview/Preview';
 
 export default function Main() {
-  const [isWaiting, setIsWaiting] = useState(true);
+  const [isWaiting, setIsWaiting] = useState(false);
+  const videoRef = useRef(null);
 
   useEffect(() => {
     // Периодический запрос для получения события от другого сайта
@@ -24,6 +25,13 @@ export default function Main() {
     return () => clearInterval(intervalId); // Очищаем интервал при размонтировании компонента
   }, []);
 
+  useEffect(() => {
+    // Когда видео начинает отображаться, начинаем его воспроизведение
+    if (!isWaiting && videoRef.current) {
+      videoRef.current.play();
+    }
+  }, [isWaiting]);
+
   const handleVideoEnd = () => {
     setIsWaiting(true);
   };
@@ -35,6 +43,7 @@ export default function Main() {
       ) : (
         <div className={styles.videoContainer}>
           <video
+            ref={videoRef}
             className={styles.video}
             controls
             autoPlay
