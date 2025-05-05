@@ -11,8 +11,10 @@ export default function Main() {
     // Периодический запрос для получения события от другого сайта
     const checkEvent = async () => {
       try {
-        const response = await axios.get('http://localhost:3001/api/event'); // API для получения события
-        if (response.data.event === 'start-video') {
+        const response = await axios.get(
+          '192.168.0.10:2424/cmd.cgi?psw=Laurent&cmd=GET,KE,10'
+        ); // API для получения события
+        if (response.data === 'KE,10,1') {
           setIsWaiting(false);
         }
       } catch (error) {
