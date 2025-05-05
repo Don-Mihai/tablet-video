@@ -4,7 +4,7 @@ import styles from './Main.module.css';
 import Preview from '../Preview/Preview';
 
 export default function Main() {
-  const [isWaiting, setIsWaiting] = useState(false);
+  const [isWaiting, setIsWaiting] = useState(true);
   const videoRef = useRef(null);
 
   useEffect(() => {
@@ -12,7 +12,7 @@ export default function Main() {
     const checkEvent = async () => {
       try {
         const response = await axios.get(
-          '192.168.0.10:2424/cmd.cgi?psw=Laurent&cmd=GET,KE,10'
+          '192.168.0.10:2424/cmd.cgi?user=admin&psw=Jerome&cmd=GET,KE,10'
         ); // API для получения события
         if (response.data === 'KE,10,1') {
           setIsWaiting(false);
