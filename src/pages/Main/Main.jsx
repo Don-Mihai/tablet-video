@@ -7,6 +7,8 @@ export default function Main() {
   const [isWaiting, setIsWaiting] = useState(true);
   const videoRef = useRef(null);
 
+  console.log('__dirname', __dirname);
+
   useEffect(() => {
     // Периодический запрос для получения события от другого сайта
     const checkEvent = async () => {

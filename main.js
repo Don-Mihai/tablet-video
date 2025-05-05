@@ -8,6 +8,7 @@ function createWindow() {
       nodeIntegration: true,
     },
   });
+  mainWindow.webContents.openDevTools();
   // Загружаем собранный React-фронтенд
   mainWindow.loadFile(path.join(__dirname, 'build', 'index.html'));
 }
