@@ -7,16 +7,12 @@ export default function Main() {
   const [isWaiting, setIsWaiting] = useState(true);
   const videoRef = useRef(null);
 
-  console.log('__dirname', __dirname);
-
   useEffect(() => {
     // Периодический запрос для получения события от другого сайта
     const checkEvent = async () => {
       try {
-        const response = await axios.get(
-          '192.168.0.10:2424/cmd.cgi?user=admin&psw=Jerome&cmd=GET,KE,10'
-        ); // API для получения события
-        if (response.data === 'KE,10,1') {
+        const response = await axios.get('192.168.0.10/cmd.cgi?cmd=GET,OUT,10'); // API для получения события
+        if (response.data === 'OUT,10,1') {
           setIsWaiting(false);
         }
       } catch (error) {

@@ -17,26 +17,12 @@ export default function Preview() {
     >
       <video
         className={styles.video}
-        src="/path/to/your/video.mp4" // укажите путь к вашему видео
+        src="/videos/start.mp4"
         autoPlay
         loop
         muted
         playsInline
       />
-
-      <div className={styles.overlay}>
-        {/* <div className={styles.top}>
-          <img src="/images/elipse.png" alt="Логотип" />
-          <h1 className={styles.title}>
-            Современное <br /> вооружение
-          </h1>
-          <img src="/images/elipse.png" alt="Логотип" />
-        </div> */}
-
-        <p className={styles.subtitle}>
-          Коснитесь экрана, <br /> чтобы узнать подробнее
-        </p>
-      </div>
     </div>
   );
 }

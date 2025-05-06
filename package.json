@@ -3,18 +3,23 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@electron/fuses": "^1.8.0",
     "axios": "^1.9.0",
+    "electron-squirrel-startup": "^1.0.1",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-router-dom": "^7.5.3",
     "react-scripts": "5.0.1"
   },
-  "main": "main.js",
+  "main": "index.html",
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
+    "build-nw": "nwbuild --platform win64 ./build",
     "dist": "npm run build && electron-builder",
-    "electron": "electron ."
+    "electron": "electron .",
+    "package": "electron-forge package",
+    "make": "electron-forge make"
   },
   "build": {
     "appId": "com.yourcompany.tabletvideo",
@@ -51,7 +56,16 @@
     ]
   },
   "devDependencies": {
+    "@electron-forge/cli": "^7.8.0",
+    "@electron-forge/maker-deb": "^7.8.0",
+    "@electron-forge/maker-rpm": "^7.8.0",
+    "@electron-forge/maker-squirrel": "^7.8.0",
+    "@electron-forge/maker-zip": "^7.8.0",
+    "@electron-forge/plugin-auto-unpack-natives": "^7.8.0",
+    "@electron-forge/plugin-fuses": "^7.8.0",
+    "@tauri-apps/cli": "^2.5.0",
     "electron": "^36.1.0",
-    "electron-builder": "^26.0.12"
+    "nw": "^0.99.0",
+    "nw-builder": "^4.13.11"
   }
 }
