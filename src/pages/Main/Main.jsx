@@ -4,55 +4,82 @@ import styles from './Main.module.css';
 import Preview from '../Preview/Preview';
 
 export default function Main() {
-  const [isWaiting, setIsWaiting] = useState(true);
+  // bitOn == true  → показываем видео
+  // bitOn == false → показываем превью
+  const [bitOn, setBitOn] = useState(false);
   const videoRef = useRef(null);
 
+  // 1) Периодически опрашиваем XML и обновляем bitOn
   useEffect(() => {
-    // Периодический запрос для получения события от другого сайта
     const checkEvent = async () => {
       try {
-        const response = await axios.get('192.168.0.10/cmd.cgi?cmd=GET,OUT,10'); // API для получения события
-        if (response.data === 'OUT,10,1') {
-          setIsWaiting(false);
+        const { data: xmlString } = await axios.get(
+          'http://192.168.0.10/cmd.cgi?cmd=GET,OUT,10',
+          { responseType: 'text' }
+        );
+        const parser = new DOMParser();
+        const xml = parser.parseFromString(xmlString, 'application/xml');
+        const node = xml.getElementsByTagName('iovalue')[0];
+        if (!node) {
+          console.warn('<iovalue> не найден');
+          return;
         }
-      } catch (error) {
-        console.error('Ошибка получения события:', error);
+        const str = node.textContent?.trim() ?? '';
+        // 10‑й символ: индекс 9
+        const isOn = str.charAt(9) === '1';
+        setBitOn(isOn);
+      } catch (e) {
+        console.error('Ошибка получения/parsing XML:', e);
       }
     };
 
-    const intervalId = setInterval(checkEvent, 2000); // проверяем событие каждые 2 секунды
+    const interval = setInterval(checkEvent, 2000);
+    return () => clearInterval(interval);
+  }, []); // пустой массив, т. к. сам эффект следит за внешним API
 
-    return () => clearInterval(intervalId); // Очищаем интервал при размонтировании компонента
-  }, []);
-
+  // 2) Как только бит включился — запускаем проигрывание
   useEffect(() => {
-    // Когда видео начинает отображаться, начинаем его воспроизведение
-    if (!isWaiting && videoRef.current) {
-      videoRef.current.play();
+    if (bitOn && videoRef.current) {
+      videoRef.current.play().catch((e) => {
+        console.warn('Не удалось запустить видео:', e);
+      });
     }
-  }, [isWaiting]);
+    // если бит выключился, а видео всё ещё есть — остановим и сбросим
+    if (!bitOn && videoRef.current) {
+      videoRef.current.pause();
+      videoRef.current.currentTime = 0;
+    }
+  }, [bitOn]);
 
-  const handleVideoEnd = () => {
-    setIsWaiting(true);
+  // 3) Когда видео доиграет — отправляем команду выключить бит и сразу сбрасываем UI
+  const handleEnded = async () => {
+    try {
+      await axios.get('http://192.168.0.10/cmd.cgi?cmd=OUT,10,0', {
+        headers: { 'Content-Type': 'text/plain' },
+      });
+    } catch (e) {
+      console.error('Не удалось выключить бит на устройстве:', e);
+    }
+    // локально сразу переключим на превью
+    setBitOn(false);
   };
 
   return (
     <>
-      {isWaiting ? (
-        <Preview />
-      ) : (
+      {bitOn ? (
         <div className={styles.videoContainer}>
           <video
             ref={videoRef}
             className={styles.video}
             controls
-            autoPlay
-            onEnded={handleVideoEnd}
+            onEnded={handleEnded}
           >
             <source src="/videos/video.mp4" type="video/mp4" />
             Ваш браузер не поддерживает видео.
           </video>
         </div>
+      ) : (
+        <Preview />
       )}
     </>
   );
