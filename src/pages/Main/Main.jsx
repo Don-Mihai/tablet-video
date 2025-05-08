@@ -14,7 +14,7 @@ export default function Main() {
     const checkEvent = async () => {
       try {
         const { data: xmlString } = await axios.get(
-          'http://192.168.0.10/cmd.cgi?cmd=GET,OUT,10',
+          'http://192.168.0.10/state.xml',
           { responseType: 'text' }
         );
         const parser = new DOMParser();
