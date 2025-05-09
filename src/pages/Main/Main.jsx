@@ -13,10 +13,9 @@ export default function Main() {
   useEffect(() => {
     const checkEvent = async () => {
       try {
-        const { data: xmlString } = await axios.get(
-          'http://192.168.0.10/state.xml',
-          { responseType: 'text' }
-        );
+        const { data: xmlString } = await axios.get('/state.xml', {
+          responseType: 'text',
+        });
         const parser = new DOMParser();
         const xml = parser.parseFromString(xmlString, 'application/xml');
         const node = xml.getElementsByTagName('iovalue')[0];
