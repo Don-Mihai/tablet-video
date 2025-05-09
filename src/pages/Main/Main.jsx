@@ -4,12 +4,15 @@ import styles from './Main.module.css';
 import Preview from '../Preview/Preview';
 
 export default function Main() {
-  // bitOn == true  → показываем видео
-  // bitOn == false → показываем превью
-  const [bitOn, setBitOn] = useState(false);
-  const videoRef = useRef(null);
+  // bit1On == true  → показываем первое видео
+  // bit2On == true  → показываем второе видео
+  // оба бита == false → показываем превью
+  const [bit1On, setBit1On] = useState(false);
+  const [bit2On, setBit2On] = useState(false);
+  const videoRef1 = useRef(null);
+  const videoRef2 = useRef(null);
 
-  // 1) Периодически опрашиваем XML и обновляем bitOn
+  // 1) Периодически опрашиваем XML и обновляем состояния обоих битов
   useEffect(() => {
     const checkEvent = async () => {
       try {
@@ -24,9 +27,12 @@ export default function Main() {
           return;
         }
         const str = node.textContent?.trim() ?? '';
-        // 10‑й символ: индекс 9
-        const isOn = str.charAt(9) === '1';
-        setBitOn(isOn);
+        // 10‑й символ (индекс 9) — первый бит
+        const isFirstOn = str.charAt(9) === '1';
+        // 11‑й символ (индекс 10) — второй бит
+        const isSecondOn = str.charAt(10) === '1';
+        setBit1On(isFirstOn);
+        setBit2On(isSecondOn);
       } catch (e) {
         console.error('Ошибка получения/parsing XML:', e);
       }
@@ -34,46 +40,79 @@ export default function Main() {
 
     const interval = setInterval(checkEvent, 2000);
     return () => clearInterval(interval);
-  }, []); // пустой массив, т. к. сам эффект следит за внешним API
+  }, []);
 
-  // 2) Как только бит включился — запускаем проигрывание
+  // 2a) Управление первым видео
   useEffect(() => {
-    if (bitOn && videoRef.current) {
-      videoRef.current.play().catch((e) => {
-        console.warn('Не удалось запустить видео:', e);
-      });
+    if (bit1On && videoRef1.current) {
+      videoRef1.current
+        .play()
+        .catch((e) => console.warn('Не удалось запустить видео 1:', e));
+    } else if (!bit1On && videoRef1.current) {
+      videoRef1.current.pause();
+      videoRef1.current.currentTime = 0;
     }
-    // если бит выключился, а видео всё ещё есть — остановим и сбросим
-    if (!bitOn && videoRef.current) {
-      videoRef.current.pause();
-      videoRef.current.currentTime = 0;
-    }
-  }, [bitOn]);
+  }, [bit1On]);
 
-  // 3) Когда видео доиграет — отправляем команду выключить бит и сразу сбрасываем UI
-  const handleEnded = async () => {
+  // 2b) Управление вторым видео
+  useEffect(() => {
+    if (bit2On && videoRef2.current) {
+      videoRef2.current
+        .play()
+        .catch((e) => console.warn('Не удалось запустить видео 2:', e));
+    } else if (!bit2On && videoRef2.current) {
+      videoRef2.current.pause();
+      videoRef2.current.currentTime = 0;
+    }
+  }, [bit2On]);
+
+  // 3a) Завершение первого видео
+  const handleEnded1 = async () => {
     try {
       await axios.get('http://192.168.0.10/cmd.cgi?cmd=OUT,10,0', {
         headers: { 'Content-Type': 'text/plain' },
       });
     } catch (e) {
-      console.error('Не удалось выключить бит на устройстве:', e);
+      console.error('Не удалось выключить бит 10 на устройстве:', e);
     }
-    // локально сразу переключим на превью
-    setBitOn(false);
+    setBit1On(false);
+  };
+
+  // 3b) Завершение второго видео
+  const handleEnded2 = async () => {
+    try {
+      await axios.get('http://192.168.0.10/cmd.cgi?cmd=OUT,11,0', {
+        headers: { 'Content-Type': 'text/plain' },
+      });
+    } catch (e) {
+      console.error('Не удалось выключить бит 11 на устройстве:', e);
+    }
+    setBit2On(false);
   };
 
   return (
     <>
-      {bitOn ? (
+      {bit2On ? (
         <div className={styles.videoContainer}>
           <video
-            ref={videoRef}
+            ref={videoRef2}
             className={styles.video}
             controls
-            onEnded={handleEnded}
+            onEnded={handleEnded2}
           >
-            <source src="/videos/video.mp4" type="video/mp4" />
+            <source src="/videos/video2.mp4" type="video/mp4" />
+            Ваш браузер не поддерживает видео.
+          </video>
+        </div>
+      ) : bit1On ? (
+        <div className={styles.videoContainer}>
+          <video
+            ref={videoRef1}
+            className={styles.video}
+            controls
+            onEnded={handleEnded1}
+          >
+            <source src="/videos/video1.mp4" type="video/mp4" />
             Ваш браузер не поддерживает видео.
           </video>
         </div>
