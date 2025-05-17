@@ -4,24 +4,22 @@ import styles from './Main.module.css';
 import Preview from '../Preview/Preview';
 
 export default function Main() {
-  // bit1On == true  → показываем первое видео
-  // bit2On == true  → показываем второе видео
-  // оба бита == false → показываем превью
   const [bit1On, setBit1On] = useState(false);
   const [bit2On, setBit2On] = useState(false);
+  const [bit3On, setBit3On] = useState(false);
+  const [bit4On, setBit4On] = useState(false);
   const videoRef1 = useRef(null);
   const videoRef2 = useRef(null);
+  const videoRef3 = useRef(null);
+  const videoRef4 = useRef(null);
 
   // 1) Периодически опрашиваем XML и обновляем состояния обоих битов
   useEffect(() => {
     const checkEvent = async () => {
       try {
-        const { data: xmlString } = await axios.get(
-          'http://192.168.0.10/state.xml',
-          {
-            responseType: 'text',
-          }
-        );
+        const { data: xmlString } = await axios.get('http://192.168.0.10/state.xml', {
+          responseType: 'text',
+        });
         const parser = new DOMParser();
         const xml = parser.parseFromString(xmlString, 'application/xml');
         const node = xml.getElementsByTagName('iovalue')[0];
@@ -34,8 +32,15 @@ export default function Main() {
         const isFirstOn = str.charAt(9) === '1';
         // 11‑й символ (индекс 10) — второй бит
         const isSecondOn = str.charAt(10) === '1';
+        // 12‑й символ (индекс 11) — третий бит
+        const isThirdOn = str.charAt(11) === '1';
+        // 13‑й символ (индекс 12) — четвертый бит
+        const isFourthOn = str.charAt(12) === '1';
+
         setBit1On(isFirstOn);
         setBit2On(isSecondOn);
+        setBit3On(isThirdOn);
+        setBit4On(isFourthOn);
       } catch (e) {
         console.error('Ошибка получения/parsing XML:', e);
       }
@@ -45,29 +50,67 @@ export default function Main() {
     return () => clearInterval(interval);
   }, []);
 
-  // 2a) Управление первым видео
+  // 1) Управление первым видео
   useEffect(() => {
-    if (bit1On && videoRef1.current) {
-      videoRef1.current
-        .play()
-        .catch((e) => console.warn('Не удалось запустить видео 1:', e));
-    } else if (!bit1On && videoRef1.current) {
-      videoRef1.current.pause();
-      videoRef1.current.currentTime = 0;
+    const vid = videoRef1.current;
+    if (!vid) return;
+    if (bit1On) {
+      vid.muted = false;
+      vid.style.display = 'block';
+      vid.play().catch(console.warn);
+    } else {
+      vid.pause();
+      vid.currentTime = 0;
+      vid.muted = true;
+      vid.style.display = 'none';
     }
   }, [bit1On]);
 
-  // 2b) Управление вторым видео
+  // 2) Управление вторым видео
   useEffect(() => {
-    if (bit2On && videoRef2.current) {
-      videoRef2.current
-        .play()
-        .catch((e) => console.warn('Не удалось запустить видео 2:', e));
-    } else if (!bit2On && videoRef2.current) {
-      videoRef2.current.pause();
-      videoRef2.current.currentTime = 0;
+    const vid = videoRef2.current;
+    if (!vid) return;
+    if (bit2On) {
+      vid.muted = false;
+      vid.style.display = 'block';
+      vid.play().catch(console.warn);
+    } else {
+      vid.pause();
+      vid.currentTime = 0;
+      vid.muted = true;
+      vid.style.display = 'none';
     }
   }, [bit2On]);
+
+  useEffect(() => {
+    const vid = videoRef3.current;
+    if (!vid) return;
+    if (bit3On) {
+      vid.muted = false;
+      vid.style.display = 'block';
+      vid.play().catch(console.warn);
+    } else {
+      vid.pause();
+      vid.currentTime = 0;
+      vid.muted = true;
+      vid.style.display = 'none';
+    }
+  }, [bit3On]);
+
+  useEffect(() => {
+    const vid = videoRef4.current;
+    if (!vid) return;
+    if (bit4On) {
+      vid.muted = false;
+      vid.style.display = 'block';
+      vid.play().catch(console.warn);
+    } else {
+      vid.pause();
+      vid.currentTime = 0;
+      vid.muted = true;
+      vid.style.display = 'none';
+    }
+  }, [bit4On]);
 
   // 3a) Завершение первого видео
   const handleEnded1 = async () => {
@@ -95,31 +138,28 @@ export default function Main() {
 
   return (
     <>
-      {bit2On ? (
-        <div className={styles.videoContainer}>
-          <video
-            ref={videoRef2}
-            className={styles.video}
-            onEnded={handleEnded2}
-          >
-            <source src="/videos/video2.mp4" type="video/mp4" />
-            Ваш браузер не поддерживает видео.
-          </video>
-        </div>
-      ) : bit1On ? (
-        <div className={styles.videoContainer}>
-          <video
-            ref={videoRef1}
-            className={styles.video}
-            onEnded={handleEnded1}
-          >
-            <source src="/videos/video1.mp4" type="video/mp4" />
-            Ваш браузер не поддерживает видео.
-          </video>
-        </div>
-      ) : (
-        <Preview />
-      )}
+      <video ref={videoRef1} className={styles.video} onEnded={handleEnded1} style={{ display: 'none' }} muted>
+        <source src="/videos/video1.mp4" type="video/mp4" />
+        Ваш браузер не поддерживает видео.
+      </video>
+
+      <video ref={videoRef2} className={styles.video} onEnded={handleEnded2} style={{ display: 'none' }} muted>
+        <source src="/videos/video2.mp4" type="video/mp4" />
+        Ваш браузер не поддерживает видео.
+      </video>
+
+      <video ref={videoRef3} className={styles.video} style={{ display: 'none' }} loop muted>
+        <source src="/videos/video1.mp4" type="video/mp4" />
+        Ваш браузер не поддерживает видео.
+      </video>
+
+      <video ref={videoRef4} className={styles.video} style={{ display: 'none' }} loop muted>
+        <source src="/videos/video2.mp4" type="video/mp4" />
+        Ваш браузер не поддерживает видео.
+      </video>
+
+      {/* Плейсхолдер, когда ничего не воспроизводится */}
+      {!bit1On && !bit2On && !bit3On && !bit4On && <Preview />}
     </>
   );
 }
